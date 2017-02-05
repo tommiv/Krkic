@@ -35,7 +35,7 @@ func main() {
     bojans := training.FetchBojans(jobs[0:50])
 
     for _, bojan := range bojans {
-        log.Info(*bojan)
+        log.Info(bojan)
     }
 
     // url := "http://i3.kym-cdn.com/photos/images/facebook/000/862/065/0e9.jpg"

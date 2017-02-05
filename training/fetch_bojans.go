@@ -7,18 +7,18 @@ import (
     log "gopkg.in/Sirupsen/logrus.v0"
 )
 
-func FetchBojans(jobs []model.FetcherJob) []*model.Bojan {
+func FetchBojans(jobs []model.FetcherJob) []model.Bojan {
     // TODO: configurable pool size
     pool := grpool.NewPool(12, len(jobs))
     pool.WaitCount(len(jobs))
 
-    var bojans []*model.Bojan;
+    var bojans []model.Bojan;
 
     for _, item := range jobs {
         job := item // should pin job in the closure
 
         pool.JobQueue <- func() {
-            result, err := fetch.GetHashByUrl(job.URL)
+            result, err := fetch.FetchBojan(job)
             if err == nil {
                 bojans = append(bojans, result)
             } else {
