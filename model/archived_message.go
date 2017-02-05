@@ -18,11 +18,12 @@ type ArchivedAttch struct {
 }
 
 type ArchivedMessage struct {
-    UserID   string          `json:"user"`
-    Type     string          `json:"type"`
-    Subtype  string          `json:"subtype"`
-    Text     string          `json:"text"`
-    DateTS   string          `json:"ts"`
-    File     ArchivedFile    `json:"file"`
-    Attch    []ArchivedAttch `json:"attachments"`
+    ChannelID string
+    UserID    string          `json:"user"`
+    Type      string          `json:"type"`
+    Subtype   string          `json:"subtype"`
+    Text      string          `json:"text"`
+    DateTS    string          `json:"ts"`
+    File      ArchivedFile    `json:"file"`
+    Attch     []ArchivedAttch `json:"attachments"`
 }

@@ -10,6 +10,7 @@ func SetupViper(appDataFolder string) {
     viper.AddConfigPath(appDataFolder)
 
     viper.SetDefault("log_level", "debug")
+    viper.SetDefault("app_data_folder", appDataFolder)
 
     err := viper.ReadInConfig()
     if err != nil {

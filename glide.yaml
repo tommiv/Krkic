@@ -12,3 +12,6 @@ import:
   version: ^5.2.3
 - package: github.com/vmihailenco/msgpack
   version: ^2.8.3
+- package: github.com/mvdan/xurls
+  version: ^1.1.0
+- package: github.com/ivpusic/grpool

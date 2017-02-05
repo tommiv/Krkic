@@ -38,6 +38,10 @@ func ReadMessages(appDataFolder string) []model.ArchivedMessage {
             var chunk []model.ArchivedMessage
             json.Unmarshal(fileBuf, &chunk)
 
+            for _, item := range chunk {
+                item.ChannelID = channel["id"].(string);
+            }
+
             messages = append(messages, chunk...)
         }
     }

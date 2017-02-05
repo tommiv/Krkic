@@ -3,6 +3,7 @@ package main
 import (
 	// "io"
 	"krkic/di"
+    // "krkic/model"
     // "krkic/fetch"
     "krkic/training"
 
@@ -14,7 +15,7 @@ import (
     log "gopkg.in/Sirupsen/logrus.v0"
 )
 
-
+// TODO: deal with pointer/value type returns everywhere
 func main() {
 	appDataFolder := os.Getenv("KRKIC_DATA_FOLDER")
 	if appDataFolder == "" {
@@ -22,11 +23,20 @@ func main() {
 	}
 
     di.SetupViper(appDataFolder)
-    di.SetupLogrus(appDataFolder)
+    di.SetupLogrus()
     di.SetupRedis()
 
     messages := training.ReadMessages(appDataFolder)
     log.Info(len(messages))
+
+    jobs := training.ParseJobs(messages);
+    log.Info(len(jobs))
+
+    bojans := training.FetchBojans(jobs[0:50])
+
+    for _, bojan := range bojans {
+        log.Info(*bojan)
+    }
 
     // url := "http://i3.kym-cdn.com/photos/images/facebook/000/862/065/0e9.jpg"
     // data, err := fetch.GetHashByUrl(url)

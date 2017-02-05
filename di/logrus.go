@@ -8,7 +8,9 @@ import (
     log "gopkg.in/Sirupsen/logrus.v0"
 )
 
-func SetupLogrus(appDataFolder string) {
+func SetupLogrus() {
+    appDataFolder := viper.GetString("app_data_folder")
+
     logFile, err := os.OpenFile(
         path.Join(appDataFolder, "krkic.log"),
         os.O_WRONLY | os.O_CREATE | os.O_APPEND,

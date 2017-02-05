@@ -1,31 +1,72 @@
 package fetch
 
 import (
-    "fmt"
+    "time"
+    "net"
+    "net/url"
     "net/http"
-    // "github.com/haochi/blockhash-go"
-    log "gopkg.in/Sirupsen/logrus.v0"
+    "strings"
     "krkic/model"
+    "github.com/haochi/blockhash-go"
+    // log "gopkg.in/Sirupsen/logrus.v0"
 )
 
-func GetHashByUrl(url string) (*model.UrlInfo, error) {
-    log.Debugf("Got new url %s", url)
+const DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"
 
-    resp, err := http.Get(url)
+// TODO: split up semantically
+// TODO: rename to what it really does
+// TODO: make a mutators/hanlders list
+// TODO: store images on disk as well
+// TODO: introduce cache with normalized url as a key
+func GetHashByUrl(url *url.URL) (*model.Bojan, error) {
+    answer := &model.Bojan {
+        URL:  url,
+        Type: model.URLTYPE_OTHER,
+    }
+
+    client  := buildClient()
+    request, _ := http.NewRequest("GET", url.String(), nil)
+    request.Header.Add("User-Agent", DEFAULT_UA)
+    request.Header.Add("Accept", "*/*")
+
+    resp, err := client.Do(request)
 	if err != nil {
-		return nil, err
+		return answer, err
 	}
 
-    fmt.Printf("%s", resp.Header.Get("content-type"))
+    defer resp.Body.Close()
 
-	// defer resp.Body.Close()
+    mime := resp.Header.Get("content-type")
+    if strings.Contains(mime, "image/") {
+        answer.Type = model.URLTYPE_IMAGE
 
-    // hash, err := blockhash.Blockhash(response.Body, 16)
-    // if err != nil {
-    //     log.Error(err)
-    // }
-    //
-    // log.Info(hash.ToHex())
+        hash, err := blockhash.Blockhash(resp.Body, 16)
+        if err != nil {
+            return answer, err
+        }
 
-    return &model.UrlInfo{}, nil
+        answer.HashBits = hash.Bits
+        answer.HashStr  = hash.ToHex()
+    }
+
+    return answer, nil
+}
+
+// TODO: Configurable timings
+func buildClient() *http.Client {
+    dialer := &net.Dialer {
+      Timeout: 2 * time.Second,
+    }
+
+    transport := &http.Transport {
+      Dial: dialer.Dial,
+      TLSHandshakeTimeout: 2 * time.Second,
+    }
+
+    client := &http.Client {
+        Timeout:   5 * time.Second,
+        Transport: transport,
+    }
+
+    return client
 }
