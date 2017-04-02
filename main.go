@@ -33,6 +33,10 @@ func main() {
     log.Info(len(jobs))
 
     bojans := training.FetchBojans(jobs[0:50])
+    log.Infof("Fetched %d bojans", len(bojans))
+
+    bojans = training.MergeByURL(bojans)
+    log.Infof("Fetched %d bojans", len(bojans))
 
     for _, bojan := range bojans {
         log.Info(bojan)

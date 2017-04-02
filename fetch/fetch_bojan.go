@@ -2,6 +2,7 @@ package fetch
 
 import (
     "time"
+    "strconv"
     "net"
     // "net/url"
     "net/http"
@@ -19,9 +20,16 @@ const DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHT
 // TODO: store images on disk as well
 // TODO: introduce cache with normalized url as a key
 func FetchBojan(job model.FetcherJob) (model.Bojan, error) {
+    attempt := model.Attempt {
+        BojanedAt: WeirdUnixTimestampToTime(job.Timestamp),
+        UserID:    job.OwnerID,
+        ChannelID: job.ChannelID,
+    }
+
     answer := model.Bojan {
-        URL:  job.URL,
-        Type: model.URLTYPE_OTHER,
+        URL:      job.URL,
+        Type:     model.URLTYPE_OTHER,
+        Attempts: []model.Attempt { attempt },
     }
 
     handler := selectHandler(job)
@@ -86,4 +94,11 @@ func buildClient() *http.Client {
     }
 
     return client
+}
+
+func WeirdUnixTimestampToTime(input string) time.Time {
+    strval := strings.Split(input, ".")[0]
+    intval, _ := strconv.Atoi(strval)
+    realval := time.Unix(int64(intval), 0)
+    return realval
 }

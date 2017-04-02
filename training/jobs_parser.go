@@ -46,7 +46,7 @@ func attachments2Jobs(message *model.ArchivedMessage) []model.FetcherJob {
 		}
 
 		job := model.FetcherJob {
-			URL:       url,
+			URL:       *url,
 			Title:     item.Title,
 			OwnerID:   message.UserID,
 			ChannelID: message.ChannelID,
@@ -77,8 +77,8 @@ func genericMessage2Jobs(message *model.ArchivedMessage) []model.FetcherJob {
 		}
 
         job := model.FetcherJob {
-            URL: url,
-            OwnerID: message.UserID,
+            URL:       *url,
+            OwnerID:   message.UserID,
             ChannelID: message.ChannelID,
             Timestamp: message.DateTS,
         }
@@ -113,7 +113,7 @@ func fileShares2Jobs(message *model.ArchivedMessage) []model.FetcherJob {
 	}
 
 	job := model.FetcherJob {
-		URL:       url,
+		URL:       *url,
 		Title:     message.File.Title,
 		MimeType:  message.File.Mime,
 		OwnerID:   message.UserID,

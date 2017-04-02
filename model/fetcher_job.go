@@ -5,7 +5,7 @@ import (
 )
 
 type FetcherJob struct {
-    URL       *url.URL
+    URL       url.URL
     Title     string // TODO: why
     MimeType  string
     OwnerID   string
