@@ -33,6 +33,7 @@ func SetupLogrus() {
 
     formatter := &log.TextFormatter{
         FullTimestamp: true,
+        ForceColors:   true,
     }
     log.SetFormatter(formatter)
 }
