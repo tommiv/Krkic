@@ -25,6 +25,7 @@ func main() {
     di.SetupViper(appDataFolder)
     di.SetupLogrus()
     di.SetupRedis()
+    di.EnsureFolders()
 
     messages := training.ReadMessages(appDataFolder)
     log.Info(len(messages))
@@ -39,7 +40,7 @@ func main() {
     log.Infof("Fetched %d bojans", len(bojans))
 
     for _, bojan := range bojans {
-        log.Info(bojan)
+        log.Info(bojan.HashStr)
     }
 
     // url := "http://i3.kym-cdn.com/photos/images/facebook/000/862/065/0e9.jpg"
