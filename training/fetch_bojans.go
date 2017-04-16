@@ -1,6 +1,7 @@
 package training
 
 import (
+    "sync"
     "krkic/model"
     "krkic/fetch"
     "github.com/ivpusic/grpool"
@@ -13,6 +14,7 @@ func FetchBojans(jobs []model.FetcherJob) []model.Bojan {
     pool.WaitCount(len(jobs))
 
     var bojans []model.Bojan;
+    var mutex = &sync.Mutex{}
 
     for _, item := range jobs {
         job := item // should pin job in the closure
@@ -20,7 +22,9 @@ func FetchBojans(jobs []model.FetcherJob) []model.Bojan {
         pool.JobQueue <- func() {
             result, err := fetch.FetchBojan(job)
             if err == nil {
+                mutex.Lock()
                 bojans = append(bojans, result)
+                mutex.Unlock()
             } else {
                 log.Error(err)
             }
