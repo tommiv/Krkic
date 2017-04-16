@@ -33,8 +33,10 @@ func main() {
     jobs := training.ParseJobs(messages);
     log.Infof("Created %d jobs", len(jobs))
 
-    bojans := training.FetchBojans(jobs[0:50])
+    bojans := training.FetchBojans(jobs)
     log.Infof("Fetched %d bojans", len(bojans))
+
+    bojans = training.SortByFirstAttempt(bojans)
 
     bojans = training.MergeByURL(bojans)
     log.Infof("Merged into %d bojans by url", len(bojans))
