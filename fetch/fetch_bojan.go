@@ -1,15 +1,25 @@
 package fetch
 
 import (
+    // "fmt"
     "time"
+    "bufio"
+    "io"
+    "os"
     "strconv"
+    "path"
     "net"
-    // "net/url"
+    "net/url"
     "net/http"
     "strings"
+    "crypto/md5"
+    "encoding/hex"
     "krkic/model"
     "krkic/fetch/handlers"
+    "krkic/di"
     "github.com/haochi/blockhash-go"
+    "gopkg.in/vmihailenco/msgpack.v2"
+    "gopkg.in/spf13/viper.v0"
     // log "gopkg.in/Sirupsen/logrus.v0"
 )
 
@@ -17,7 +27,6 @@ const DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHT
 
 // TODO: split up semantically
 // TODO: make a mutators/handlers list
-// TODO: store images on disk as well
 // TODO: introduce cache with normalized url as a key
 func FetchBojan(job model.FetcherJob) (model.Bojan, error) {
     attempt := model.Attempt {
@@ -26,20 +35,35 @@ func FetchBojan(job model.FetcherJob) (model.Bojan, error) {
         ChannelID: job.ChannelID,
     }
 
+    handler := selectHandler(job)
+
+    url := handler.ModifyURL(job.URL)
+    urlhash := URLToMD5Hex(url)
+
+    cacheKey := "cache:http:" + urlhash
+
     answer := model.Bojan {
-        URL:      job.URL,
+        URL:      url,
         Type:     model.URLTYPE_OTHER,
         Attempts: []model.Attempt { attempt },
     }
-
-    handler := selectHandler(job)
 
     if !handler.NeedResponse(job) {
         return answer, nil
     }
 
+    storedBuf, _ := di.RedisOther.Get(cacheKey).Bytes()
+    if len(storedBuf) > 0 {
+        var stored model.Bojan
+        err := msgpack.Unmarshal(storedBuf, &stored)
+
+        if err == nil {
+            return stored, nil
+        }
+    }
+
     client  := buildClient()
-    request, _ := http.NewRequest("GET", job.URL.String(), nil)
+    request, _ := http.NewRequest("GET", url.String(), nil)
     request.Header.Add("User-Agent", DEFAULT_UA)
     request.Header.Add("Accept", "*/*")
 
@@ -51,10 +75,24 @@ func FetchBojan(job model.FetcherJob) (model.Bojan, error) {
     defer resp.Body.Close()
 
     mime := resp.Header.Get("content-type")
-    if strings.Contains(mime, "image/") {
+    mimeChunks := strings.Split(mime, "/")
+
+    if len(mimeChunks) == 2 && mimeChunks[0] == "image" {
         answer.Type = model.URLTYPE_IMAGE
 
-        hash, err := blockhash.Blockhash(resp.Body, 16)
+        fileDumpPath := path.Join(viper.GetString("app_data_folder"), "imgcache", urlhash + "." + mimeChunks[1])
+        file, err := os.Create(fileDumpPath)
+        if err != nil {
+            return answer, err
+        }
+        fileWriter := bufio.NewWriter(file)
+
+        tee := io.TeeReader(resp.Body, fileWriter)
+
+        defer fileWriter.Flush()
+        defer file.Close()
+
+        hash, err := blockhash.Blockhash(tee, 16)
         if err != nil {
             return answer, err
         }
@@ -62,6 +100,9 @@ func FetchBojan(job model.FetcherJob) (model.Bojan, error) {
         answer.HashBits = hash.Bits
         answer.HashStr  = hash.ToHex()
     }
+
+    tostore, _ := msgpack.Marshal(answer)
+    di.RedisOther.Set(cacheKey, tostore, 0)
 
     return answer, nil
 }
@@ -101,4 +142,10 @@ func WeirdUnixTimestampToTime(input string) time.Time {
     intval, _ := strconv.Atoi(strval)
     realval := time.Unix(int64(intval), 0)
     return realval
+}
+
+func URLToMD5Hex(url url.URL) string {
+    inputBuf := []byte(url.String())
+    sum := md5.Sum(inputBuf)
+    return hex.EncodeToString(sum[:])
 }
