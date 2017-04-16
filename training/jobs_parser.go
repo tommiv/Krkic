@@ -1,8 +1,8 @@
 package training
 
 import (
-    "strings"
 	"net/url"
+    "strings"
     "krkic/model"
 	"github.com/mvdan/xurls"
     log "gopkg.in/Sirupsen/logrus.v0"

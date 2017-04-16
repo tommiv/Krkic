@@ -28,16 +28,16 @@ func main() {
     di.EnsureFolders()
 
     messages := training.ReadMessages(appDataFolder)
-    log.Info(len(messages))
+    log.Infof("Parsed %d messages", len(messages))
 
     jobs := training.ParseJobs(messages);
-    log.Info(len(jobs))
+    log.Infof("Created %d jobs", len(jobs))
 
     bojans := training.FetchBojans(jobs[0:50])
     log.Infof("Fetched %d bojans", len(bojans))
 
     bojans = training.MergeByURL(bojans)
-    log.Infof("Fetched %d bojans", len(bojans))
+    log.Infof("Merged into %d bojans by url", len(bojans))
 
     for _, bojan := range bojans {
         log.Info(bojan.HashStr)
