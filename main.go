@@ -41,9 +41,9 @@ func main() {
     bojans = training.MergeByURL(bojans)
     log.Infof("Merged into %d bojans by url", len(bojans))
 
-    for _, bojan := range bojans {
-        log.Info(bojan.HashStr)
-    }
+    // for _, bojan := range bojans {
+    //     log.Info(bojan.HashStr)
+    // }
 
     // url := "http://i3.kym-cdn.com/photos/images/facebook/000/862/065/0e9.jpg"
     // data, err := fetch.GetHashByUrl(url)
